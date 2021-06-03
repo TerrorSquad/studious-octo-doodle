@@ -22,6 +22,7 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"io/fs"
 	"io/ioutil"
 	"log"
 	"os"
@@ -50,38 +51,49 @@ Example: bicsv ./product_images
 		if err != nil {
 			log.Fatal(err)
 		}
-		re := regexp.MustCompile(`(?P<sku>\d+)_(?P<suffix>\d)(?P<extension>\.jpe?g|png)`)
-		var products = map[string]Product{}
-		for _, file := range files {
-			var match = re.FindAllStringSubmatch(file.Name(), -1)
-			if len(match) > 0 {
-				sku := match[0][1]
-				suffix := match[0][2]
-				if products[sku].Sku == "" {
-					products[sku] = updateProductImages(Product{
-						Sku:    sku,
-						Images: ProductImages{},
-					}, suffix, file.Name())
-				} else {
-					if sku == products[sku].Sku {
-						updateProductImages(products[sku], suffix, file.Name())
-					}
+		var products = initProducts(files)
+
+		bytes, _ := generateCsv(products)
+		fmt.Print(string(bytes))
+	},
+}
+
+func initProducts(files []fs.FileInfo) map[string]Product {
+	re := regexp.MustCompile(`(?P<sku>\d+)_(?P<suffix>\d)(?P<extension>\.jpe?g|png)`)
+	var products = map[string]Product{}
+	for _, file := range files {
+		var match = re.FindAllStringSubmatch(file.Name(), -1)
+		if len(match) > 0 {
+			sku := match[0][1]
+			suffix := match[0][2]
+			if products[sku].Sku == "" {
+				products[sku] = updateProductImages(Product{
+					Sku:    sku,
+					Images: ProductImages{},
+				}, suffix, file.Name())
+			} else {
+				if sku == products[sku].Sku {
+					updateProductImages(products[sku], suffix, file.Name())
 				}
 			}
 		}
-		headers := []string{"Sku", "base_image", "small_image", "thumbnail_image", "rollover_image"}
-		var rows [][]string
-		for _, product := range products {
-			rows = append(rows, []string{
-				product.Sku,
-				product.Images.BaseImage,
-				product.Images.SmallImage,
-				product.Images.ThumbnailImage,
-				product.Images.RolloverImage})
-		}
-		byteData, err := csvManager.WriteAll(append([][]string{headers}, rows...))
-		fmt.Print(string(byteData))
-	},
+
+	}
+	return products
+}
+
+func generateCsv(products map[string]Product) ([]byte, error) {
+	headers := []string{"Sku", "base_image", "small_image", "thumbnail_image", "rollover_image"}
+	var rows [][]string
+	for _, product := range products {
+		rows = append(rows, []string{
+			product.Sku,
+			product.Images.BaseImage,
+			product.Images.SmallImage,
+			product.Images.ThumbnailImage,
+			product.Images.RolloverImage})
+	}
+	return csvManager.WriteAll(append([][]string{headers}, rows...))
 }
 
 func updateProductImages(product Product, suffix string, fileName string) Product {
