@@ -83,7 +83,7 @@ func initProducts(files []fs.FileInfo) map[string]Product {
 }
 
 func generateCsv(products map[string]Product) ([]byte, error) {
-	headers := []string{"Sku", "base_image", "small_image", "thumbnail_image", "rollover_image"}
+	headers := []string{"sku", "base_image", "small_image", "thumbnail_image", "rollover_image"}
 	var rows [][]string
 	for _, product := range products {
 		rows = append(rows, []string{
