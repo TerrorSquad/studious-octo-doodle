@@ -63,7 +63,7 @@ Example: bicsv ./product_images
 		if err != nil {
 			log.Fatal(err)
 		}
-		re := regexp.MustCompile(`(?P<sku>\d+)_(?P<suffix>\d)(?P<extension>\.jpg|png)`)
+		re := regexp.MustCompile(`(?P<sku>\d+)_(?P<suffix>\d)(?P<extension>\.jpe?g|png)`)
 		var products = map[string]Product{}
 		for _, file := range files {
 			var match = re.FindAllStringSubmatch(file.Name(), -1)
