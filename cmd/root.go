@@ -29,9 +29,16 @@ import (
 	"regexp"
 )
 
+type ProductImages struct {
+	baseImage      string
+	smallImage     string
+	thumbnailImage string
+	rolloverImage  string
+}
+
 type Product struct {
 	sku    string
-	images map[string]string
+	images ProductImages
 }
 
 var cfgFile string
@@ -64,13 +71,13 @@ Example: bicsv ./product_images
 				sku := match[0][1]
 				suffix := match[0][2]
 				if products[sku].sku == "" {
-					products[sku] = updateImagesMapForProduct(Product{
+					products[sku] = updateProductImages(Product{
 						sku:    sku,
-						images: map[string]string{},
+						images: ProductImages{},
 					}, suffix, file.Name())
 				} else {
 					if sku == products[sku].sku {
-						updateImagesMapForProduct(products[sku], suffix, file.Name())
+						updateProductImages(products[sku], suffix, file.Name())
 					}
 				}
 			}
@@ -80,23 +87,23 @@ Example: bicsv ./product_images
 		for _, product := range products {
 			rows = append(rows, []string{
 				product.sku,
-				product.images["baseImage"],
-				product.images["smallImage"],
-				product.images["thumbnailImage"],
-				product.images["rolloverImage"]})
+				product.images.baseImage,
+				product.images.smallImage,
+				product.images.thumbnailImage,
+				product.images.rolloverImage})
 		}
 		byteData, err := WriteAll(append([][]string{headers}, rows...))
 		fmt.Print(string(byteData))
 	},
 }
 
-func updateImagesMapForProduct(product Product, suffix string, fileName string) Product {
+func updateProductImages(product Product, suffix string, fileName string) Product {
 	if suffix == "1" {
-		product.images["baseImage"] = fileName
-		product.images["smallImage"] = fileName
-		product.images["thumbnailImage"] = fileName
+		product.images.baseImage = fileName
+		product.images.smallImage = fileName
+		product.images.thumbnailImage = fileName
 	} else if suffix == "2" {
-		product.images["rolloverImage"] = fileName
+		product.images.rolloverImage = fileName
 	}
 	return product
 }
