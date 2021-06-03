@@ -16,9 +16,8 @@ limitations under the License.
 package cmd
 
 import (
-	"bytes"
-	"encoding/csv"
-	"errors"
+	"bicsv/csvManager"
+	. "bicsv/helpers/products"
 	"fmt"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -28,18 +27,6 @@ import (
 	"os"
 	"regexp"
 )
-
-type ProductImages struct {
-	baseImage      string
-	smallImage     string
-	thumbnailImage string
-	rolloverImage  string
-}
-
-type Product struct {
-	sku    string
-	images ProductImages
-}
 
 var cfgFile string
 
@@ -70,59 +57,42 @@ Example: bicsv ./product_images
 			if len(match) > 0 {
 				sku := match[0][1]
 				suffix := match[0][2]
-				if products[sku].sku == "" {
+				if products[sku].Sku == "" {
 					products[sku] = updateProductImages(Product{
-						sku:    sku,
-						images: ProductImages{},
+						Sku:    sku,
+						Images: ProductImages{},
 					}, suffix, file.Name())
 				} else {
-					if sku == products[sku].sku {
+					if sku == products[sku].Sku {
 						updateProductImages(products[sku], suffix, file.Name())
 					}
 				}
 			}
 		}
-		headers := []string{"sku", "base_image", "small_image", "thumbnail_image", "rollover_image"}
+		headers := []string{"Sku", "base_image", "small_image", "thumbnail_image", "rollover_image"}
 		var rows [][]string
 		for _, product := range products {
 			rows = append(rows, []string{
-				product.sku,
-				product.images.baseImage,
-				product.images.smallImage,
-				product.images.thumbnailImage,
-				product.images.rolloverImage})
+				product.Sku,
+				product.Images.BaseImage,
+				product.Images.SmallImage,
+				product.Images.ThumbnailImage,
+				product.Images.RolloverImage})
 		}
-		byteData, err := WriteAll(append([][]string{headers}, rows...))
+		byteData, err := csvManager.WriteAll(append([][]string{headers}, rows...))
 		fmt.Print(string(byteData))
 	},
 }
 
 func updateProductImages(product Product, suffix string, fileName string) Product {
 	if suffix == "1" {
-		product.images.baseImage = fileName
-		product.images.smallImage = fileName
-		product.images.thumbnailImage = fileName
+		product.Images.BaseImage = fileName
+		product.Images.SmallImage = fileName
+		product.Images.ThumbnailImage = fileName
 	} else if suffix == "2" {
-		product.images.rolloverImage = fileName
+		product.Images.RolloverImage = fileName
 	}
 	return product
-}
-
-func WriteAll(records [][]string) ([]byte, error) {
-	if records == nil || len(records) == 0 {
-		return nil, errors.New("records cannot be nil or empty")
-	}
-	var buf bytes.Buffer
-	csvWriter := csv.NewWriter(&buf)
-	err := csvWriter.WriteAll(records)
-	if err != nil {
-		return nil, err
-	}
-	csvWriter.Flush()
-	if err := csvWriter.Error(); err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
