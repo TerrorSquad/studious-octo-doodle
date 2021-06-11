@@ -87,22 +87,12 @@ func generateCsv(products map[string]Product) ([]byte, error) {
 	headers := []string{"sku", "base_image", "small_image", "thumbnail_image", "rollover_image", "additional_images"}
 	var rows [][]string
 	for _, product := range products {
-		if product.Images.AdditionalImages != nil {
-			var row []string
-			row = append(row, product.Sku,
-				product.Images.BaseImage,
-				product.Images.SmallImage,
-				product.Images.ThumbnailImage,
-				strings.Join(product.Images.AdditionalImages, ","))
-			rows = append(rows, row)
-		} else {
-			rows = append(rows, []string{
-				product.Sku,
-				product.Images.BaseImage,
-				product.Images.SmallImage,
-				product.Images.ThumbnailImage,
-				product.Images.RolloverImage})
-		}
+		rows = append(rows, []string{product.Sku,
+			product.Images.BaseImage,
+			product.Images.SmallImage,
+			product.Images.ThumbnailImage,
+			product.Images.RolloverImage,
+			strings.Join(product.Images.AdditionalImages, ",")})
 
 	}
 	return csvManager.WriteAll(append([][]string{headers}, rows...))
