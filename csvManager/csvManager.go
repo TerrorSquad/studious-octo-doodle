@@ -12,6 +12,7 @@ func WriteAll(records [][]string) ([]byte, error) {
 	}
 	var buf bytes.Buffer
 	csvWriter := csv.NewWriter(&buf)
+	csvWriter.Comma = '|'
 	err := csvWriter.WriteAll(records)
 	if err != nil {
 		return nil, err

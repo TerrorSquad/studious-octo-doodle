@@ -1,10 +1,11 @@
 package products
 
 type ProductImages struct {
-	BaseImage      string
-	SmallImage     string
-	ThumbnailImage string
-	RolloverImage  string
+	BaseImage        string
+	SmallImage       string
+	ThumbnailImage   string
+	RolloverImage    string
+	AdditionalImages []string
 }
 
 type Product struct {

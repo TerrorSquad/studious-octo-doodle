@@ -27,6 +27,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strings"
 )
 
 var cfgFile string
@@ -73,7 +74,7 @@ func initProducts(files []fs.FileInfo) map[string]Product {
 				}, suffix, file.Name())
 			} else {
 				if sku == products[sku].Sku {
-					updateProductImages(products[sku], suffix, file.Name())
+					products[sku] = updateProductImages(products[sku], suffix, file.Name())
 				}
 			}
 		}
@@ -83,15 +84,26 @@ func initProducts(files []fs.FileInfo) map[string]Product {
 }
 
 func generateCsv(products map[string]Product) ([]byte, error) {
-	headers := []string{"sku", "base_image", "small_image", "thumbnail_image", "rollover_image"}
+	headers := []string{"sku", "base_image", "small_image", "thumbnail_image", "rollover_image", "additional_images"}
 	var rows [][]string
 	for _, product := range products {
-		rows = append(rows, []string{
-			product.Sku,
-			product.Images.BaseImage,
-			product.Images.SmallImage,
-			product.Images.ThumbnailImage,
-			product.Images.RolloverImage})
+		if product.Images.AdditionalImages != nil {
+			var row []string
+			row = append(row, product.Sku,
+				product.Images.BaseImage,
+				product.Images.SmallImage,
+				product.Images.ThumbnailImage,
+				strings.Join(product.Images.AdditionalImages, ","))
+			rows = append(rows, row)
+		} else {
+			rows = append(rows, []string{
+				product.Sku,
+				product.Images.BaseImage,
+				product.Images.SmallImage,
+				product.Images.ThumbnailImage,
+				product.Images.RolloverImage})
+		}
+
 	}
 	return csvManager.WriteAll(append([][]string{headers}, rows...))
 }
@@ -103,6 +115,8 @@ func updateProductImages(product Product, suffix string, fileName string) Produc
 		product.Images.ThumbnailImage = fileName
 	} else if suffix == "2" {
 		product.Images.RolloverImage = fileName
+	} else {
+		product.Images.AdditionalImages = append(product.Images.AdditionalImages, fileName)
 	}
 	return product
 }
