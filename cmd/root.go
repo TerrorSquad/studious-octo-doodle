@@ -60,7 +60,7 @@ Example: bicsv ./product_images
 }
 
 func initProducts(files []fs.FileInfo) map[string]Product {
-	re := regexp.MustCompile(`(?P<sku>\d+)_(?P<suffix>\d)(?P<extension>\.jpe?g|png)`)
+	re := regexp.MustCompile(`(?i)(?P<sku>\d+)_(?P<suffix>\d)(?P<extension>\.jpe?g|png)`)
 	var products = map[string]Product{}
 	for _, file := range files {
 		var match = re.FindAllStringSubmatch(file.Name(), -1)
