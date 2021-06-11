@@ -84,15 +84,19 @@ func initProducts(files []fs.FileInfo) map[string]Product {
 }
 
 func generateCsv(products map[string]Product) ([]byte, error) {
-	headers := []string{"sku", "base_image", "small_image", "thumbnail_image", "rollover_image", "additional_images"}
+	headers := []string{"sku", "website_id", "base_image", "small_image", "thumbnail_image", "rollover_image", "additional_images"}
 	var rows [][]string
+	var websiteId = "1"
+	var multipleValuesSeparator = ","
 	for _, product := range products {
-		rows = append(rows, []string{product.Sku,
+		rows = append(rows, []string{
+			product.Sku,
+			websiteId,
 			product.Images.BaseImage,
 			product.Images.SmallImage,
 			product.Images.ThumbnailImage,
 			product.Images.RolloverImage,
-			strings.Join(product.Images.AdditionalImages, ",")})
+			strings.Join(product.Images.AdditionalImages, multipleValuesSeparator)})
 
 	}
 	return csvManager.WriteAll(append([][]string{headers}, rows...))
